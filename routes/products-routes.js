@@ -1,6 +1,6 @@
-const express = require('express');
+const Router = require('express').Router;
 
-const router = express.Router();
+const router = new Router();
 
 router.get('/', (req,res, next) => {
     res.json({message: 'Products Work'})
