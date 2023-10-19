@@ -9,7 +9,7 @@ router.post('/login', userController.login);
 
 router.post('/logout', userController.logout);
 
-router.get('/activate/:link', userController.activate);
+router.get('/activate/:email/:link', userController.activate);
 
 router.get('/refresh', userController.refresh);
 
