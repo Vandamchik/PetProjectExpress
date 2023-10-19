@@ -9,20 +9,27 @@ const UserDto = require('../dtos/user-dto');
 
 
 class UsersService {
-    async registration(email, password) {
+    async registration(email, password, name) {
         const singleUser = await UserModel.findOne({ email });
         if (singleUser) {
-            return new HttpError(`User with ${ email } is already exist`, 409);
+            throw  HttpError.BadRequest(`User with ${ email } is already exist`);
         }
         const hashPassword = await bcrypt.hash(password,3);
-        const activationLink = uuid.v4()
-        const user = await UserModel.create({ email, password: hashPassword });
-        await mailService.sendActivationMail(email, activationLink);
+        const activationLink = uuid.v4();
+        const user = await UserModel.create({ email, password: hashPassword, name });
+        await mailService.sendActivationMail(email, name, `${process.env.API_URL}/api/auth/activate/${email}/${activationLink}`);
         const userDto = new UserDto(user);
         const tokens = tokenService.generateTokens({...userDto});
         await tokenService.saveToken(userDto.id, tokens.refreshToken);
-
         return {...tokens, user: userDto}
+    }
+
+    async activate(activationLink, email) {
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            throw  HttpError.BadRequest('Not correct activation link')
+        }
+        await user.updateOne({ isActivated: true, activationLink });
     }
 
 }
