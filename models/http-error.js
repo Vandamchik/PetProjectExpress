@@ -14,5 +14,9 @@ module.exports = class HttpError extends Error {
     static BadRequest(message, errors = []) {
         return new HttpError(message, 400, errors );
     }
+
+    static NoPermits() {
+        return new HttpError('You is not admin,please login as admin', 403);
+    }
 };
 

@@ -5,7 +5,7 @@ const UserModel = require('../models/users-model');
 const mailService = require('./mail-service');
 const tokenService = require('./token-service');
 const HttpError = require('../models/http-error');
-const UserDto = require('../dtos/user-dto');
+const genTokenAndUser = require('../utils/genTokenAndUser');
 
 
 class UsersService {
@@ -18,10 +18,8 @@ class UsersService {
         const activationLink = uuid.v4();
         const user = await UserModel.create({ email, password: hashPassword, name, isAdmin });
         await mailService.sendActivationMail(email, name, `${process.env.API_URL}/api/auth/activate/${email}/${activationLink}`);
-        const userDto = new UserDto(user);
-        const tokens = tokenService.generateTokens({...userDto});
-        await tokenService.saveToken(userDto.id, tokens.refreshToken);
-        return {...tokens, user: userDto}
+        const userData = await genTokenAndUser(user);
+        return userData;
     }
 
     async activate(activationLink, email) {
@@ -30,6 +28,43 @@ class UsersService {
             throw  HttpError.BadRequest('Not correct activation link')
         }
         await user.updateOne({ isActivated: true, activationLink });
+    }
+
+    async login(email, password) {
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            throw  HttpError.BadRequest(`User with email: ${email} not found`);
+        }
+        const isPassEquals = await bcrypt.compare(password, user.password);
+        if (!isPassEquals) {
+            throw  HttpError.BadRequest(`Password wrong`);
+        }
+        const userData = await genTokenAndUser(user);
+        return userData;
+    }
+
+    async logout(refreshToken) {
+        const token = await tokenService.removeToken(refreshToken);
+        return token;
+    }
+
+    async refresh(refreshToken) {
+        if (!refreshToken) {
+            throw HttpError.UnauthorizedError();
+        }
+        const tokenData = tokenService.validateRefreshToken(refreshToken);
+        const tokenFromDb = await tokenService.findToken(refreshToken);
+        if (!tokenData || !tokenFromDb) {
+            throw HttpError.UnauthorizedError();
+        }
+        const user = await UserModel.findById(tokenData.id);
+        const userData = await genTokenAndUser(user);
+        return userData;
+    }
+
+    async getAllClients() {
+        const allClients = await UserModel.findOne();
+        return allClients;
     }
 
 }

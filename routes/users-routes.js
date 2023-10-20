@@ -1,13 +1,14 @@
 const Router = require('express').Router;
+const { check } = require('express-validator');
 
 const userController = require('../controllers/users-controller');
-const { check } = require('express-validator');
+const authMiddleware = require('../middlewares/auth-middleware');
 
 const router = new Router();
 
 router.post(
     '/registration',
-[
+    [
         check('name')
             .not()
             .isEmpty(),
@@ -20,14 +21,28 @@ router.post(
     userController.registration
 );
 
-router.post('/login', userController.login);
+router.post(
+    '/login',
+    [
+        check('email')
+            .isEmail()
+            .normalizeEmail(),
+        check('password')
+            .isLength({ min: 6 })
+        ],
+    userController.login
+);
 
 router.post('/logout', userController.logout);
 
-router.get('/activate/:email/:link', userController.activate);
-
 router.get('/refresh', userController.refresh);
 
-router.get('/clients', userController.getClients);
+router.get('/activate/:email/:link', userController.activate);
+
+router.get(
+    '/allClients',
+   authMiddleware,
+    userController.getClients
+);
 
 module.exports = router;
