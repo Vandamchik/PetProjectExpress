@@ -4,7 +4,6 @@ class MailService {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            // host: ,
             service: process.env.SMTP_SERVICE,
             secure: false,
             auth: {
@@ -12,8 +11,8 @@ class MailService {
                 pass: process.env.SMTP_PASS
             }
         })
-
     }
+
     async sendActivationMail(destination, name,link) {
         await this.transporter.sendMail({
             from: process.env.SMTP_USER,
@@ -27,7 +26,7 @@ class MailService {
                     <a href="${link}">${link}</a>
                 </div>
             `
-        })
+        });
     }
 }
 

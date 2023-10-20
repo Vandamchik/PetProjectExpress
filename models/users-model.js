@@ -8,6 +8,6 @@ const UserSchema = new Schema({
     image: { type: String, default: '' },
     isActivated: { type: Boolean, default: false },
     activationLink: { type: String, default: '' },
-})
+});
 
 module.exports = model("User", UserSchema);

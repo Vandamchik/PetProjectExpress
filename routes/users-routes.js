@@ -1,9 +1,24 @@
 const Router = require('express').Router;
 
 const userController = require('../controllers/users-controller');
+const { check } = require('express-validator');
+
 const router = new Router();
 
-router.post('/registration', userController.registration);
+router.post(
+    '/registration',
+[
+        check('name')
+            .not()
+            .isEmpty(),
+        check('email')
+            .isEmail()
+            .normalizeEmail(),
+        check('password')
+            .isLength({ min: 6 })
+        ],
+    userController.registration
+);
 
 router.post('/login', userController.login);
 

@@ -1,18 +1,26 @@
+const { validationResult } = require('express-validator');
+
 const userService = require('../service/users-service');
+const HttpError = require('../models/http-error');
 
 class UsersController {
     async registration(req,res,next) {
         try {
-            const { email, password, name } = req.body;
-            const userData = await userService.registration(email,password,name);
-            const cookieOptions = { maxAge: (30 * 24 * 60 * 60 * 1000), httpOnly: true };
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return next(HttpError.BadRequest('Wrong email or password', errors.array()))
+            }
+            const { email, password, name, isAdmin } = req.body;
+            // if (! email || !password) return next(HttpError.BadRequest('Wrong email or password'));
+            const userData = await userService.registration(email,password,name, isAdmin);
             res.cookie(
                 'refreshToken',
                 userData.refreshToken,
-                cookieOptions);
+                { maxAge: (30 * 24 * 60 * 60 * 1000), httpOnly: true }
+            );
             res.json(userData);
         } catch (e) {
-            next(e)
+            next(e);
         }
     }
 
@@ -20,7 +28,7 @@ class UsersController {
         try {
 
         } catch (e) {
-
+            next(e);
         }
     }
 
@@ -28,7 +36,7 @@ class UsersController {
         try {
 
         } catch (e) {
-
+            next(e);
         }
     }
 
@@ -36,10 +44,10 @@ class UsersController {
         try {
             const activationLink = req.params['link'];
             const userEmail = req.params['email'];
-            await userService.activate(activationLink,userEmail);
+            await userService.activate(activationLink, userEmail);
             return res.redirect(process.env.CLIENT_URL);
         } catch (e) {
-            next(e)
+            next(e);
         }
     }
 
@@ -47,15 +55,15 @@ class UsersController {
         try {
 
         } catch (e) {
-
+            next(e);
         }
     }
 
     async getClients(req,res,next) {
         try {
-            res.json(["Twerk"])
+            res.json(["Twerk"]);
         } catch (e) {
-
+            next(e);
         }
     }
 }
