@@ -21,8 +21,8 @@ class MailService {
             text: '',
             html: `
                 <div>
-                    <h1 style="color: red;">Hi, ${name}! Glab to see you on our web-site</h1>
-                    <h3>For activation your account press the link</h3>
+                    <h1 style="color: red;">Hi, ${name}! Glad to see you on our web-site</h1>
+                    <h3>To activate your account please follow the link below</h3>
                     <a href="${link}">${link}</a>
                 </div>
             `
